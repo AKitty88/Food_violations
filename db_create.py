@@ -21,32 +21,32 @@ cursor.execute("DROP TABLE IF EXISTS inspection")
         
 sql = """CREATE TABLE inspection (
     activity_date Date,
-    employee_id number(8),
-    facility_address char(30),
+    employee_id char(10),
+    facility_address char(50),
     facility_city char(30),
-    facility_id number(3) PRIMARY KEY,
-    facility_name char(30),
-    facility_state char(20),
-    facility_zip number(3),
-    grade number(3),
-    owner_id number(3),
-    owner_name char(30),
-    pe_description char(30),
-    program_element_pe number(3),
-    program_name char(30),
-    program_status
-    record_id number(3),
-    score number(3),
-    serial_number number(3),
+    facility_id char(14) PRIMARY KEY,
+    facility_name char(50),
+    facility_state char(2),
+    facility_zip char(14),
+    grade char(1),
+    owner_id char(15),
+    owner_name char(50),
+    pe_description char(50),
+    program_element_pe number(4),
+    program_name char(50),
+    program_status char(10),
+    record_id char(14),
+    score char(5),
+    serial_number char(15),
     service_code number(3),
     service_description char(30));"""
 
-cursor.execute(sql)
+cursor.execute(sql)                                                 # score number(3) !!! TEST
 
  #file = open("food_viol_schema.sql")
  #cursor.execute(file.read())
 
-for row in sheet_ins.iter_rows(min_row=2, max_row=5):
+for row in sheet_ins.iter_rows(min_row=2, max_row=5):               # delete max_row=5 !!! TEST
     activity_date = row[0].value
     employee_id = row[1].value
     facility_address = row[2].value
@@ -68,13 +68,10 @@ for row in sheet_ins.iter_rows(min_row=2, max_row=5):
     service_code = row[18].value
     service_description = row[19].value
     
-    #print("INSERT INTO inspection VALUES('"+str(activity_date)+"', '"+employee_id+"', facility_address, facility_city, facility_id, facility_name, facility_state, facility_zip, grade, owner_id, owner_name, pe_description, program_element_pe, program_name, program_status, record_id, score, serial_number, service_code, service_description);")
+    cursor.execute("INSERT INTO inspection VALUES('"+str(activity_date)+"', '"+employee_id+"', facility_address, facility_city, facility_id, facility_name, facility_state, facility_zip, grade, owner_id, owner_name, pe_description, program_element_pe, program_name, program_status, record_id, score, serial_number, service_code, service_description);")
     #cursor.execute("INSERT INTO inspection (activity_date, employee_id) VALUES('{acd}', '{eid}');".format(acd=activity_date, eid=employee_id))
-    cursor.execute("INSERT INTO inspection (activity_date, employee_id, facility_address, facility_city, facility_id, facility_name, facility_state, facility_zip, grade, owner_id, owner_name, pe_description, program_element_pe, \
-                                            program_name, program_status, record_id, score, serial_number, service_code, service_description) VALUES('{acd}', '{eid}', '{fad}', '{fac}', '{fai}', '{fan}', '{fas}', '{faz}', '{g}', \
-                                            '{oi}', '{on}', '{pd}', '{pep}', '{pn}', '{ps}', '{ri}', '{s}', '{sn}', '{sc}', '{sd}');".format(acd=activity_date, eid=employee_id, fad=facility_address, fac=facility_city, \
-                                            fai=facility_id, fan=facility_name, fas=facility_state, faz=facility_zip, g=grade, oi=owner_id, on=owner_name, pd=pe_description, pep=program_element_pe, pn=program_name, \
-                                            ps=program_status, ri=record_id, s=score, sn=serial_number, sc=service_code, sd=service_description))
+    #(activity_date, employee_id, facility_address, facility_city, facility_id, facility_name, facility_state, facility_zip, grade, owner_id, owner_name, pe_description, program_element_pe, program_name, program_status, record_id, score, serial_number, service_code, service_description)
+    #cursor.execute("INSERT INTO inspection VALUES('{acd}', '{eid}', '{fad}', '{fac}', '{fai}', '{fan}', '{fas}', '{faz}', '{g}', '{oi}', '{on}', '{pd}', {pep}, '{pn}', '{ps}', '{ri}', '{s}', '{sn}', {sc}, '{sd}');".format(acd=activity_date, eid=employee_id, fad=facility_address, fac=facility_city, fai=facility_id, fan=facility_name, fas=facility_state, faz=facility_zip, g=grade, oi=owner_id, on=owner_name, pd=pe_description, pep=program_element_pe, pn=program_name,  ps=program_status, ri=record_id, s="0", sn=serial_number, sc=service_code, sd=service_description))
     
 cursor.execute("SELECT activity_date FROM inspection")
 activity_date_db = cursor.fetchall()
