@@ -1,26 +1,28 @@
-import re
 import openpyxl
 import sqlite3
 from sqlite3 import Error
-import numpy as np
-import matplotlib.pyplot as plt
+#import numpy as np
+#import matplotlib.pyplot as plt
 
 wb_ins = openpyxl.load_workbook("inspections.xlsx")
 sheet_ins = wb_ins['inspections']
 
- #wb_viol = openpyxl.load_workbook("violations.xlsx")
- #sheet_viol = wb_viol['violations']
+wb_viol = openpyxl.load_workbook("violations.xlsx")
+sheet_viol = wb_viol['violations']
 
 try:
     connection = sqlite3.connect("Food_violations.db")                  # creating a new database file (if it doesn't exist already)
     print("Food_violations.db created")    
 except Error as e:
+    connection.close()
     print(e)
 
 cursor = connection.cursor()
-cursor.execute("DROP TABLE IF EXISTS inspection")
-        
-sql = """CREATE TABLE inspection (
+cursor.execute("DROP TABLE IF EXISTS inspection;")
+cursor.execute("DROP TABLE IF EXISTS violation;")
+cursor.execute("DROP TABLE IF EXISTS previous_violation;")
+          
+sql_ins = """CREATE TABLE inspection (
     activity_date Date,
     employee_id char(10),    
     facility_address char(50),
@@ -42,12 +44,33 @@ sql = """CREATE TABLE inspection (
     service_code number(3),
     service_description char(30));"""
 
-cursor.execute(sql)
+sql_viol = """CREATE TABLE violation (
+    points number(2),
+    serial_number char(15),
+    violation_code char(4),
+    violation_description char(60),
+    violation_status char(20),
+    facility_id char(14),
+    PRIMARY KEY (serial_number, violation_code),
+    FOREIGN KEY (facility_id) REFERENCES inspection(facility_id));"""
+          
+sql_prev_viol = """CREATE TABLE previous_violation ( 
+    facility_name char(50),
+    facility_address char(50),
+    facility_zip char(14),
+    facility_city char(30),
+    serial_number char(15) PRIMARY KEY,
+    facility_id char(14),
+    FOREIGN KEY (facility_id) REFERENCES inspection(facility_id));"""
+
+cursor.execute(sql_ins)
+cursor.execute(sql_viol)
+cursor.execute(sql_prev_viol)
 
  #file = open("food_viol_schema.sql")
  #cursor.execute(file.read())
 
-for row in sheet_ins.iter_rows(min_row=2, max_row=5):               # delete max_row=5 !!! TEST
+for row in sheet_ins.iter_rows(min_row=2, max_row=30):               # delete max_row=5 !!! TEST
     activity_date = row[0].value
     employee_id = row[1].value
     facility_address = row[2].value
@@ -69,46 +92,47 @@ for row in sheet_ins.iter_rows(min_row=2, max_row=5):               # delete max
     service_code = row[18].value
     service_description = row[19].value
     
+    #cursor.execute("INSERT INTO inspection VALUES('"+str(activity_date)+"', '"+employee_id+"', facility_address, facility_city, facility_id, facility_name, facility_state, facility_zip, grade, owner_id, owner_name, pe_description, program_element_pe, program_name, program_status, record_id, score, serial_number, service_code, service_description);")
     cursor.execute("INSERT INTO inspection VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", (activity_date, employee_id, facility_address, facility_city, facility_id, facility_name, facility_state, facility_zip, grade, owner_id, owner_name, pe_description, program_element_pe, program_name,  program_status, record_id, score, serial_number, service_code, service_description))
     
-cursor.execute("SELECT activity_date FROM inspection")
+cursor.execute("SELECT activity_date FROM inspection;")
 activity_date_db = cursor.fetchall()
-print(activity_date_db)
+#print(activity_date_db)
+
+for row in sheet_viol.iter_rows(min_row=2, max_row=30):               # delete max_row=5 !!! TEST
+    points = row[0].value
+    serial_number_v = row[1].value
+    violation_code = row[2].value
+    violation_description = row[3].value
+    violation_status = row[4].value
+    #cursor.execute("SELECT facility_id FROM inspection WHERE serial_number=(?);", (serial_number_v,))
+    cursor.execute("SELECT facility_id FROM inspection WHERE serial_number= '"+str(serial_number_v)+"';")
+    facility_id_v = cursor.fetchall()                   # kell
+    print(facility_id_v)                   # kell
     
+    #cursor.execute("INSERT INTO violation VALUES(?, ?, ?, ?, ?, ?);", (points, serial_number_v, violation_code, violation_description, violation_status, facility_id_v[0]))                   # kell
+
+#cursor.execute("SELECT points FROM violation;")                   # kell
+#points_db = cursor.fetchall()                   # kell
+#print(points_db)
+
+# Task 2
+cursor.execute("SELECT DISTINCT facility_name, facility_address, facility_zip, facility_city, serial_number, facility_id FROM inspection WHERE serial_number is not NULL ORDER BY facility_name;")
+#cursor.execute("SELECT DISTINCT facility_name, facility_address, facility_zip, facility_city, serial_number FROM inspection WHERE serial_number > 0 ORDER BY facility_name;")         # ez a jo!
+companies = cursor.fetchall()
+#print(companies)
+
+for comp in companies:
+    cursor.execute("INSERT INTO previous_violation VALUES(?, ?, ?, ?, ?, ?);", (comp[0], comp[1], comp[2], comp[3], comp[4], comp[5]))
+
+#cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.facility_id = p.facility_id;")                  # kell
+
+#cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.facility_id = p.facility_id GROUP BY SUM(v.points);")
+#cursor.execute("SELECT p.facility_id FROM previous_violation p, inspection i WHERE p.serial_number = i.serial_number;")             # ok
+#cursor.execute("SELECT p.serial_number FROM previous_violation p;")              # ok
+counts = cursor.fetchall()
+print(counts)
+
+cursor.close()
+connection.close()
     
-#cursor.execute("SELECT program_element_pe FROM inspection")
-#program_element_pe_db = cursor.fetchall()
-
-#cursor.execute("SELECT service_code FROM inspection")
-#service_code_db = cursor.fetchall()
-
-#plt.plot(program_element_pe_db, service_code_db)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
