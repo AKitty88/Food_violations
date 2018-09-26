@@ -126,29 +126,24 @@ for row in sheet_viol.iter_rows(min_row=2):               # delete max_row=5 !!!
 # Task 2
 #cursor.execute("SELECT DISTINCT facility_name, facility_address, facility_zip, facility_city, serial_number, facility_id FROM inspection WHERE serial_number is not NULL ORDER BY facility_name;")
 
-# =============================================================================
-# cursor.execute("SELECT DISTINCT facility_name, facility_address, facility_zip, facility_city, v.serial_number, facility_id FROM inspection i, violation v WHERE i.serial_number=v.serial_number ORDER BY facility_name;")
-# #cursor.execute("SELECT * FROM inspection WHERE serial_number='DAT2HKIRE' LIMIT 1;")
-# companies = cursor.fetchall()
-# 
-# for comp in companies:
-#     cursor.execute("INSERT INTO previous_violation VALUES(?, ?, ?, ?, ?, ?);", (comp[0], comp[1], comp[2], comp[3], comp[4], comp[5]))
-#     print("companies printing")
-#     print(comp[0])
-#     print(comp[1])
-#     print(comp[2])
-#     print(comp[3])
-#     print(comp[4])
-#     print(comp[5])
-# 
-# #cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.facility_id = p.facility_id;")                  # kell
-# 
-# #cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.facility_id = p.facility_id GROUP BY v.points;")
-# #cursor.execute("SELECT p.facility_id FROM previous_violation p, inspection i WHERE p.serial_number = i.serial_number;")             # ok
-# #cursor.execute("SELECT p.serial_number FROM previous_violation p;")              # ok
-# cursor.execute("SELECT * FROM previous_violation;")
-# counts = cursor.fetchall()
-# =============================================================================
+cursor.execute("SELECT DISTINCT facility_name, facility_address, facility_zip, facility_city, v.serial_number, facility_id FROM inspection i, violation v WHERE i.serial_number=v.serial_number ORDER BY facility_name;")
+#cursor.execute("SELECT * FROM inspection WHERE serial_number='DAT2HKIRE' LIMIT 1;")               # nem kell
+companies = cursor.fetchall()
+
+for comp in companies:
+    cursor.execute("SELECT * FROM previous_violation WHERE serial_number=(?);", (comp[4],))
+    found_pr_viol = cursor.fetchall()
+    
+    if len(found_pr_viol) == 0:
+        cursor.execute("INSERT INTO previous_violation VALUES(?, ?, ?, ?, ?, ?);", (comp[0], comp[1], comp[2], comp[3], comp[4], comp[5]))
+
+#cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.facility_id = p.facility_id;")                  # kell
+
+#cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.facility_id = p.facility_id GROUP BY v.points;")
+#cursor.execute("SELECT p.facility_id FROM previous_violation p, inspection i WHERE p.serial_number = i.serial_number;")             # ok
+#cursor.execute("SELECT p.serial_number FROM previous_violation p;")              # ok
+cursor.execute("SELECT * FROM previous_violation;")
+counts = cursor.fetchall()
 
 connection.commit()
 cursor.close()
