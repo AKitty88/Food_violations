@@ -123,7 +123,7 @@ for comp in companies:
     if len(found_pr_viol) == 0:
         cursor.execute("INSERT INTO previous_violation VALUES(?, ?, ?, ?, ?, ?);", (comp[0], comp[1], comp[2], comp[3], comp[4], comp[5]))
 
-cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.serial_number = p.serial_number ORDER BY v.points;")
+cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.serial_number = p.serial_number GROUP BY v.points;")           # or ORDER BY
 counts = cursor.fetchall()
 print(counts)
 
