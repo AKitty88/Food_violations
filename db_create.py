@@ -96,20 +96,13 @@ for row in sheet_ins.iter_rows(min_row=2):
     
     if len(found_ins) == 0:
         cursor.execute("INSERT INTO inspection VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", (activity_date, employee_id, facility_address, facility_city, facility_id, facility_name, facility_state, facility_zip, grade, owner_id, owner_name, pe_description, program_element_pe, program_name,  program_status, record_id, score, serial_number, service_code, service_description))
-    
-#cursor.execute("SELECT activity_date_db FROM inspection;")
-#activity_date_db = cursor.fetchall()
-#print(activity_date_db)
 
-for row in sheet_viol.iter_rows(min_row=2):               # delete max_row=5 !!! TEST
+for row in sheet_viol.iter_rows(min_row=2):
     points = row[0].value
     serial_number_v = row[1].value
     violation_code = row[2].value
     violation_description = row[3].value
     violation_status = row[4].value
-    #print("SELECT facility_id FROM inspection WHERE serial_number= '"+str(serial_number_v)+"';")
-    #facility_id_v = cursor.fetchall()
-    #print(facility_id_v)
     
     cursor.execute("SELECT * FROM violation WHERE serial_number=(?) AND violation_code=(?);", (serial_number_v, violation_code))
     found_viol = cursor.fetchall()
@@ -117,17 +110,10 @@ for row in sheet_viol.iter_rows(min_row=2):               # delete max_row=5 !!!
     if len(found_viol) == 0:
         cursor.execute("INSERT INTO violation VALUES(?, ?, ?, ?, ?);", (points, serial_number_v, violation_code, violation_description, violation_status))
 
-#cursor.execute("SELECT points_db FROM violation;")
-#points_db = cursor.fetchall()
-#print(points_db)
-
-
 
 # Task 2
-#cursor.execute("SELECT DISTINCT facility_name, facility_address, facility_zip, facility_city, serial_number, facility_id FROM inspection WHERE serial_number is not NULL ORDER BY facility_name;")
-
+        
 cursor.execute("SELECT DISTINCT facility_name, facility_address, facility_zip, facility_city, v.serial_number, facility_id FROM inspection i, violation v WHERE i.serial_number=v.serial_number ORDER BY facility_name;")
-#cursor.execute("SELECT * FROM inspection WHERE serial_number='DAT2HKIRE' LIMIT 1;")               # nem kell
 companies = cursor.fetchall()
 
 for comp in companies:
@@ -137,10 +123,7 @@ for comp in companies:
     if len(found_pr_viol) == 0:
         cursor.execute("INSERT INTO previous_violation VALUES(?, ?, ?, ?, ?, ?);", (comp[0], comp[1], comp[2], comp[3], comp[4], comp[5]))
 
-cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.serial_number = p.serial_number GROUP BY v.points;")
-#cursor.execute("SELECT p.facility_id FROM previous_violation p, inspection i WHERE p.serial_number = i.serial_number;")             # ok
-#cursor.execute("SELECT p.serial_number FROM previous_violation p;")              # ok
-#cursor.execute("SELECT * FROM previous_violation;")
+cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.serial_number = p.serial_number ORDER BY v.points;")
 counts = cursor.fetchall()
 print(counts)
 
