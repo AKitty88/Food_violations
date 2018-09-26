@@ -137,15 +137,43 @@ for comp in companies:
     if len(found_pr_viol) == 0:
         cursor.execute("INSERT INTO previous_violation VALUES(?, ?, ?, ?, ?, ?);", (comp[0], comp[1], comp[2], comp[3], comp[4], comp[5]))
 
-#cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.facility_id = p.facility_id;")                  # kell
-
-#cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.facility_id = p.facility_id GROUP BY v.points;")
+cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.serial_number = p.serial_number GROUP BY v.points;")
 #cursor.execute("SELECT p.facility_id FROM previous_violation p, inspection i WHERE p.serial_number = i.serial_number;")             # ok
 #cursor.execute("SELECT p.serial_number FROM previous_violation p;")              # ok
-cursor.execute("SELECT * FROM previous_violation;")
+#cursor.execute("SELECT * FROM previous_violation;")
 counts = cursor.fetchall()
+print(counts)
 
 connection.commit()
 cursor.close()
 connection.close()
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
