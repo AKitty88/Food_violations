@@ -32,7 +32,6 @@ for i in range(2, len(violation_counts)):
     sheet.cell(row=i, column=1, value= str(violation_code[i]))
     sheet.cell(row=i, column=2, value= str(violation_description[i]))
     sheet.cell(row=i, column=3, value= str(violation_counts[i]))
-    #sheet.cell(row=i, column=2, value="Dirty Floors")
     
 wb.save('ViolationTypes.xlsx')
 cursor.close()
