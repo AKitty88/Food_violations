@@ -1,8 +1,6 @@
 import openpyxl
 import sqlite3
 from sqlite3 import Error
-#import numpy as np
-#import matplotlib.pyplot as plt
 
 wb_ins = openpyxl.load_workbook("inspections.xlsx")
 sheet_ins = wb_ins['inspections']
