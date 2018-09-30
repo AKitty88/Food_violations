@@ -43,7 +43,8 @@ postcodes = cursor.fetchall()
 cursor.execute("SELECT outer.facility_zip, \
                (SELECT count(r2.facility_id) from inspection r2 WHERE outer.facility_zip=r2.facility_zip GROUP BY r2.facility_zip,strftime('%Y-%m',r2.activity_date) ORDER BY count(r2.facility_id) DESC)-(SELECT count(r2.facility_id) from inspection r2 WHERE outer.facility_zip=r2.facility_zip GROUP BY r2.facility_zip,r2.activity_date ORDER BY count(r2.facility_id) ASC) as viol_diff \
                FROM (SELECT r.facility_zip FROM inspection r GROUP BY r.facility_zip) as outer \
-               ORDER BY viol_diff DESC;")
+               ORDER BY viol_diff DESC \
+               LIMIT 1;")
 
 postcode_max_diff = cursor.fetchall()
 print(postcode_max_diff[0][0])                      # 90045
