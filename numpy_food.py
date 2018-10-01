@@ -63,20 +63,22 @@ cursor = connection.cursor()
 # viols_per_months = cursor.fetchall()                                                        # around 1500
 # =============================================================================
 
-# Task 5:
-cursor.execute("SELECT DISTINCT violation_code, violation_description FROM violation;")
-viol_code_descr = cursor.fetchall()
-
-# Task 6:
-#food_words = re.search("food", viol_code_descr)
-
-for word in viol_code_descr:
-    for wo in word:
-        prog = re.compile("food")
-        food_words = prog.search(wo)
-    
-    if food_words:
-        print(food_words)
+# =============================================================================
+# # Task 5:
+# cursor.execute("SELECT DISTINCT violation_code, violation_description FROM violation;")
+# viol_code_descr = cursor.fetchall()
+# 
+# # Task 6:
+# for word in viol_code_descr:
+#     for wo in word:
+#         prog = re.compile("food")
+#         food_words = prog.search(wo)
+#         
+#         if food_words:
+#             print(wo)
+#             print (word[0])
+#             print()
+# =============================================================================
 
 cursor.close()
 connection.close()
