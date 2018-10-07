@@ -19,13 +19,13 @@ cursor = connection.cursor()
 cursor.execute("DROP TABLE IF EXISTS inspection;")
 cursor.execute("DROP TABLE IF EXISTS violation;")
 cursor.execute("DROP TABLE IF EXISTS previous_violation;")
-          
+
 sql_ins = """CREATE TABLE inspection (
     activity_date Date,
     employee_id char(10),    
     facility_address char(50),
     facility_city char(30),
-    facility_id char(14) PRIMARY KEY,
+    facility_id char(14),
     facility_name char(50),
     facility_state char(2),
     facility_zip char(14),
@@ -38,7 +38,7 @@ sql_ins = """CREATE TABLE inspection (
     program_status char(10),
     record_id char(14), 
     score number(3),
-    serial_number char(15),
+    serial_number char(15) PRIMARY KEY,
     service_code number(3),
     service_description char(30));"""
 
@@ -49,6 +49,7 @@ sql_viol = """CREATE TABLE violation (
     violation_description char(60),
     violation_status char(20),
     PRIMARY KEY (serial_number, violation_code),
+    FOREIGN KEY (serial_number) REFERENCES inspection(serial_number),
     FOREIGN KEY (serial_number) REFERENCES previous_violation(serial_number));"""
           
 sql_prev_viol = """CREATE TABLE previous_violation ( 
@@ -57,15 +58,11 @@ sql_prev_viol = """CREATE TABLE previous_violation (
     facility_zip char(14),
     facility_city char(30),
     serial_number char(15) PRIMARY KEY,
-    facility_id char(14),
-    FOREIGN KEY (facility_id) REFERENCES inspection(facility_id));"""
+    facility_id char(14));"""
 
 cursor.execute(sql_ins)
-cursor.execute(sql_viol)
 cursor.execute(sql_prev_viol)
-
- #file = open("food_viol_schema.sql")
- #cursor.execute(file.read())
+cursor.execute(sql_viol)
 
 for row in sheet_ins.iter_rows(min_row=2):
     activity_date = row[0].value
@@ -89,7 +86,7 @@ for row in sheet_ins.iter_rows(min_row=2):
     service_code = row[18].value
     service_description = row[19].value
     
-    cursor.execute("SELECT * FROM inspection WHERE facility_id=(?);", (facility_id,))
+    cursor.execute("SELECT * FROM inspection WHERE serial_number=(?);", (serial_number,))
     found_ins = cursor.fetchall()
     
     if len(found_ins) == 0:
@@ -108,9 +105,7 @@ for row in sheet_viol.iter_rows(min_row=2):
     if len(found_viol) == 0:
         cursor.execute("INSERT INTO violation VALUES(?, ?, ?, ?, ?);", (points, serial_number_v, violation_code, violation_description, violation_status))
 
-
-# Task 2
-        
+# Task 2        
 cursor.execute("SELECT DISTINCT facility_name, facility_address, facility_zip, facility_city, v.serial_number, facility_id FROM inspection i, violation v WHERE i.serial_number=v.serial_number ORDER BY facility_name;")
 companies = cursor.fetchall()
 
@@ -121,9 +116,24 @@ for comp in companies:
     if len(found_pr_viol) == 0:
         cursor.execute("INSERT INTO previous_violation VALUES(?, ?, ?, ?, ?, ?);", (comp[0], comp[1], comp[2], comp[3], comp[4], comp[5]))
 
-cursor.execute("SELECT p.facility_name, SUM(v.points) FROM violation v, previous_violation p WHERE v.serial_number = p.serial_number GROUP BY v.points;")           # or ORDER BY
+cursor.execute("SELECT p.facility_id, p.facility_name, v.number \
+               FROM previous_violation p, (SELECT DISTINCT COUNT(serial_number) AS number, serial_number FROM violation GROUP BY serial_number) v \
+               WHERE v.serial_number = p.serial_number \
+               ORDER BY v.number DESC;")
 counts = cursor.fetchall()
-print(counts)
+print(counts)                                                                  # biggest: 27
+
+cursor.execute("SELECT count(*) FROM inspection;")                              # 191.371
+inspection = cursor.fetchall()
+print(inspection)
+
+cursor.execute("SELECT count(*) FROM violation;")                               # 905.885
+violation = cursor.fetchall()
+print(violation)
+
+cursor.execute("SELECT count(*) FROM previous_violation;")                      # 186.899
+previous_violation = cursor.fetchall()
+print(previous_violation)
 
 connection.commit()
 cursor.close()
